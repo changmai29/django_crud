@@ -15,9 +15,12 @@ class NotesList(View):
     # GET
     def get(self,request):
         print(request)
-        id = request.GET.get('id', '')
+        id = request.GET.get('id', 0)
+        if id:
+            queryset = Notes.objects.filter(id=id)
+        else:
+            queryset = Notes.objects.all()
         try :
-            queryset = Notes.objects.all().filter(id=id)
             notes = []
             serializer_class = NotesSerializer(queryset, many=True)
             for i in range(len(queryset)):
@@ -88,6 +91,7 @@ class NotesList(View):
         data = json.loads(request.body)
         id = data['id']
         print(data)
+        
         try:  
             payload = Notes.objects.filter(pk=id).update(data)
             note = NotesSerializer(instance=payload, data=data, partial=True)
@@ -110,16 +114,33 @@ class NotesList(View):
         data = json.loads(request.body)
         id = data['id']
         try:
-            note = Notes.objects.get(pk = id)
-            note.delete()
-            return JsonResponse({
-                "status": "success",
-                "code": 200,
-                "message": "Resource deleted.",
-            }, status=200)
+            note = Notes.objects.filter(id=id)
+            if note:
+                try:
+                    note = Notes.objects.get(pk = id)
+                    note.delete()
+                    return JsonResponse({
+                        "status": "success",
+                        "code": 200,
+                        "message": "Resource deleted.",
+                    }, status=200)
+                except:
+                    return JsonResponse({
+                        "status": "failure",
+                        "code": 500,
+                        "message": "Internal server error.",
+                    }, status=500)
+            else:
+                return JsonResponse({
+                    "status": "error",
+                    "code": 404,
+                    "message": "Resource dont exist.",
+                }, status=404)
         except:
-            return JsonResponse({
-                "status": "failure",
-                "code": 500,
-                "message": "Internal server error.",
-            }, status=500)
+                return JsonResponse({
+                    "status": "failure",
+                    "code": 500,
+                    "message": "Inernal server error.",
+                }, status=500)
+        
+        
