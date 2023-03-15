@@ -6,5 +6,11 @@ class Notes(models.Model):
     title=models.CharField(max_length=50)
     body=models.TextField()
     timestamp=models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "notes"
+
+    def __str__(self):
+        return self.title
 
 
