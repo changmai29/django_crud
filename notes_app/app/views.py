@@ -16,10 +16,20 @@ class NotesList(View):
     def get(self,request):
         print(request)
         id = request.GET.get('id', 0)
+
+        page = request.GET.get('page', 1)
+        size = request.GET.get('size', 3)
+
+        limit = int(size)
+        offset = (int(page)) * limit
+
+        print("offset")
+        print(offset)
+
         if id:
             queryset = Notes.objects.filter(id=id)
         else:
-            queryset = Notes.objects.all()
+            queryset = Notes.objects.all()[offset:offset+limit]
         try :
             notes = []
             serializer_class = NotesSerializer(queryset, many=True)
@@ -30,6 +40,8 @@ class NotesList(View):
                 "status": "success",
                 "code": 200,
                 "message": "Data fetched successfully.",
+                "page": page,
+                "size": size,
                 "data": notes
             }, status=200)
         except:
