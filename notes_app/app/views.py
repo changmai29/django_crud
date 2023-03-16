@@ -21,7 +21,7 @@ class NotesList(View):
         size = request.GET.get('size', 3)
 
         limit = int(size)
-        offset = (int(page)) * limit
+        offset = (int(page)-1) * limit
 
         print("offset")
         print(offset)
@@ -83,30 +83,33 @@ class NotesList(View):
         data = json.loads(request.body)
         id = data['id']
         print(id)
-        payload = Notes.objects.get(id = id)
-        
-        for key, value in data.items():
-            if hasattr(payload, key):
-                setattr(payload, key, value)
-                payload.save()
-        
-        print(payload)
-        return JsonResponse({
-            "status": "success",
-            "code": 200,
-            "message": "Resources updated successfully.",
-        }, status=200)
+        try:
+            note = Notes.objects.get(id = id)
+            for key, value in data.items():
+                setattr(note, key, value)
+            note.save()
+            return JsonResponse({
+                "status": "success",
+                "code": 200,
+                "message": "Resources updated successfully.",
+            }, status=200)
+        except:
+            return JsonResponse({
+                "status": "error",
+                "code": 500,
+                "message": "Internal server error.",
+            }, status=500)
     
 
-    # PATCH -- not working
+    # PATCH
     def patch(self, request):
         data = json.loads(request.body)
         id = data['id']
         print(data)
-        
         try:  
-            payload = Notes.objects.filter(pk=id).update(data)
-            note = NotesSerializer(instance=payload, data=data, partial=True)
+            note = Notes.objects.get(pk=id)
+            for key, value in data.items():
+                setattr(note, key, value)
             note.save()
             return JsonResponse({
                 "status": "success",
@@ -115,10 +118,10 @@ class NotesList(View):
             }, status=200)
         except:
             return JsonResponse({
-                "status": "success",
-                "code": 200,
-                "message": "Resources updated successfully.",
-            }, status=200)
+                "status": "serror",
+                "code": 500,
+                "message": "RInternal server error.",
+            }, status=500)
     
 
     # DELETE
