@@ -10,32 +10,36 @@ from django.views.generic import ListView
 from django.views import View
 import json
 
+from rest_framework import filters
+from django.db.models import Q
+from django.db.models import Count
+
+from django.core.serializers import serialize
+from rest_framework.response import Response
+
 
 class NotesList(View):
     # GET
-    def get(self,request):
-        print(request)
+    def get(self, request):
         id = request.GET.get('id', 0)
 
         page = request.GET.get('page', 1)
         size = request.GET.get('size', 3)
 
         limit = int(size)
-        offset = (int(page)-1) * limit
-
-        print("offset")
-        print(offset)
+        offset = (int(page) - 1) * limit
 
         if id:
             queryset = Notes.objects.filter(id=id)
         else:
-            queryset = Notes.objects.all()[offset:offset+limit]
-        try :
+            queryset = Notes.objects.all()[offset:offset + limit]
+        try:
             notes = []
             serializer_class = NotesSerializer(queryset, many=True)
             for i in range(len(queryset)):
                 x = model_to_dict(queryset[i])
                 notes.append(x)
+            print(notes)
             return JsonResponse({
                 "status": "success",
                 "code": 200,
@@ -49,10 +53,9 @@ class NotesList(View):
                 "status": "failure",
                 "code": 500,
                 "message": "Internal server error.",
-            }, status=500) 
-    
+            }, status=500)
 
-    # POST 
+            # POST
     def post(self, request):
         data = json.loads(request.body)
         print(data)
@@ -64,7 +67,7 @@ class NotesList(View):
                 title=noteTitle,
                 body=noteBody,
             )
-            payload.save();
+            payload.save()
             return JsonResponse({
                 "status": "success",
                 "code": 201,
@@ -75,16 +78,16 @@ class NotesList(View):
                 "status": "failure",
                 "code": 500,
                 "message": "Internal server error.",
-            }, status=500) 
+            }, status=500)
 
-    
-    # PUT
+            # PUT
+
     def put(self, request):
         data = json.loads(request.body)
         id = data['id']
         print(id)
         try:
-            note = Notes.objects.get(id = id)
+            note = Notes.objects.get(id=id)
             for key, value in data.items():
                 setattr(note, key, value)
             note.save()
@@ -99,14 +102,13 @@ class NotesList(View):
                 "code": 500,
                 "message": "Internal server error.",
             }, status=500)
-    
 
     # PATCH
     def patch(self, request):
         data = json.loads(request.body)
         id = data['id']
         print(data)
-        try:  
+        try:
             note = Notes.objects.get(pk=id)
             for key, value in data.items():
                 setattr(note, key, value)
@@ -122,7 +124,6 @@ class NotesList(View):
                 "code": 500,
                 "message": "RInternal server error.",
             }, status=500)
-    
 
     # DELETE
     def delete(self, request):
@@ -132,7 +133,7 @@ class NotesList(View):
             note = Notes.objects.filter(id=id)
             if note:
                 try:
-                    note = Notes.objects.get(pk = id)
+                    note = Notes.objects.get(pk=id)
                     note.delete()
                     return JsonResponse({
                         "status": "success",
@@ -152,10 +153,8 @@ class NotesList(View):
                     "message": "Resource dont exist.",
                 }, status=404)
         except:
-                return JsonResponse({
-                    "status": "failure",
-                    "code": 500,
-                    "message": "Inernal server error.",
-                }, status=500)
-        
-        
+            return JsonResponse({
+                "status": "failure",
+                "code": 500,
+                "message": "Inernal server error.",
+            }, status=500)

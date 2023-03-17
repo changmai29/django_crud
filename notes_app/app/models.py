@@ -9,6 +9,7 @@ class Notes(models.Model):
     
     class Meta:
         db_table = "notes"
+        managed=True
 
     def __str__(self):
         return self.title
